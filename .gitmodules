@@ -1,0 +1,4 @@
+[submodule "3rdparty/lua"]
+	path = 3rdparty/lua
+	url = https://github.com/geoyee/lua.git
+	branch = lua-5.4
