@@ -16,9 +16,28 @@ if (PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
   message(FATAL_ERROR "Please create a build directory and run CMake from there")
 endif ()
 
+if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  if (WIN32)
+    set(CMAKE_INSTALL_PREFIX
+        "${CMAKE_CURRENT_SOURCE_DIR}/install"
+        CACHE PATH "Install path prefix" FORCE)
+    string(REPLACE "\\" "/" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
+  else ()
+    set(CMAKE_INSTALL_PREFIX
+        "/usr/local"
+        CACHE PATH "Install path prefix" FORCE)
+  endif ()
+endif ()
+message(STATUS "CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
+
 add_definitions(-D_USE_MATH_DEFINES)
 
 string(COMPARE EQUAL ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR} IS_MAIN_PROJECT)
+if (${IS_MAIN_PROJECT})
+  message(STATUS "Building main project")
+else ()
+  message(STATUS "Building subproject")
+endif ()
 
 build_lua(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/lua)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sol2)
@@ -74,3 +93,5 @@ if (${IS_MAIN_PROJECT})
 endif ()
 
 set_target_properties(${PROJECT_NAME} PROPERTIES INTERPROCEDURAL_OPTIMIZATION_RELEASE ON)
+
+install(TARGETS ${PROJECT_NAME} DESTINATION bin)

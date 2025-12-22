@@ -90,32 +90,33 @@ function (build_lua LUA_SOURCE_DIR)
   endif ()
 
   # Create the Lua library target
-  add_library(lua ${LIB_TYPE} ${LIBRARY_SOURCES})
+  add_library(liblua ${LIB_TYPE} ${LIBRARY_SOURCES})
+  set_target_properties(liblua PROPERTIES OUTPUT_NAME "liblua")
 
   # Set include directories
-  target_include_directories(lua PUBLIC ${LUA_INCLUDE_DIR})
+  target_include_directories(liblua PUBLIC ${LUA_INCLUDE_DIR})
 
   # Platform-specific settings
   if (WIN32)
     # Windows specific settings
     if ("${LIB_TYPE}" STREQUAL "SHARED")
-      target_compile_definitions(lua PRIVATE LUA_BUILD_AS_DLL)
-      target_compile_definitions(lua PUBLIC LUA_USE_DLL)
+      target_compile_definitions(liblua PRIVATE LUA_BUILD_AS_DLL)
+      target_compile_definitions(liblua PUBLIC LUA_USE_DLL)
     endif ()
   else ()
     # Unix/Linux specific settings
-    target_compile_definitions(lua PRIVATE LUA_USE_LINUX)
+    target_compile_definitions(liblua PRIVATE LUA_USE_LINUX)
     if ("${LIB_TYPE}" STREQUAL "SHARED")
-      target_compile_definitions(lua PUBLIC LUA_USE_DLL)
+      target_compile_definitions(liblua PUBLIC LUA_USE_DLL)
     endif ()
   endif ()
 
   # Set properties
   set_target_properties(
-    lua
+    liblua
     PROPERTIES VERSION ${LUA_VERSION_MAJOR}.${LUA_VERSION_MINOR}.${LUA_VERSION_PATCH}
                SOVERSION ${LUA_VERSION_MAJOR}
-               OUTPUT_NAME "lua")
+               OUTPUT_NAME "liblua")
 
   # For shared libraries on Unix-like systems, set the appropriate suffix
   if ("${LIB_TYPE}" STREQUAL "SHARED"
@@ -138,10 +139,10 @@ function (build_lua LUA_SOURCE_DIR)
 
     # Build lua interpreter
     if (LUA_C_PATH)
-      add_executable(lua_exe ${LUA_C_PATH})
-      target_link_libraries(lua_exe lua)
-      set_target_properties(lua_exe PROPERTIES OUTPUT_NAME "lua")
-      message(STATUS "Created Lua interpreter executable: lua_exe")
+      add_executable(lua ${LUA_C_PATH})
+      target_link_libraries(lua liblua)
+      set_target_properties(lua PROPERTIES OUTPUT_NAME "lua")
+      message(STATUS "Created Lua interpreter executable: lua")
     else ()
       message(WARNING "lua.c not found, skipping Lua interpreter build")
     endif ()
@@ -156,17 +157,46 @@ function (build_lua LUA_SOURCE_DIR)
 
     # Build luac compiler
     if (LUAC_C_PATH)
-      add_executable(luac_exe ${LUAC_C_PATH})
-      target_link_libraries(luac_exe lua)
-      set_target_properties(luac_exe PROPERTIES OUTPUT_NAME "luac")
-      message(STATUS "Created Lua compiler executable: luac_exe")
+      add_executable(luac ${LUAC_C_PATH})
+      target_link_libraries(luac liblua)
+      set_target_properties(luac PROPERTIES OUTPUT_NAME "luac")
+      message(STATUS "Created Lua compiler executable: luac")
     else ()
       message(WARNING "luac.c not found, skipping Lua compiler build")
     endif ()
   endif ()
 
   # Create an alias target for easier linking
-  add_library(Lua::Lua ALIAS lua)
+  add_library(Lua::Lua ALIAS liblua)
 
-  message(STATUS "Lua library target 'lua' (${LIB_TYPE}) created successfully")
+  # Install the Lua library
+  install(
+    TARGETS liblua
+    EXPORT LuaTargets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    INCLUDES
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+  # Install Lua header files
+  # Find all header files
+  file(GLOB LUA_HEADERS "${LUA_INCLUDE_DIR}/*.h" "${LUA_INCLUDE_DIR}/*.hpp")
+  if (LUA_HEADERS)
+    # Also create a version-less include directory for easier inclusion
+    install(FILES ${LUA_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/lua)
+  endif ()
+
+  # Install executables if built
+  if (BUILD_EXECUTABLES)
+    if (TARGET lua)
+      install(TARGETS lua RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+    endif ()
+
+    if (TARGET luac)
+      install(TARGETS luac RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+    endif ()
+  endif ()
+
+  message(STATUS "Lua library target 'liblua' (${LIB_TYPE}) created successfully with installation support")
 endfunction ()
