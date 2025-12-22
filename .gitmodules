@@ -1,4 +1,3 @@
-[submodule "3rdparty/lua"]
-	path = 3rdparty/lua
-	url = https://github.com/geoyee/lua.git
-	branch = lua-5.4
+[submodule "3rdparty/sol2"]
+	path = 3rdparty/sol2
+	url = https://github.com/ThePhD/sol2.git

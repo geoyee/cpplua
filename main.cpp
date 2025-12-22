@@ -1,65 +1,73 @@
-#include "lua.hpp"
+#include <sol/sol.hpp>
 #include <iostream>
-#include <string>
+#include <filesystem>
 
-class LuaExecutor final
+namespace fs = std::filesystem;
+
+struct CustomData
 {
-public:
-    LuaExecutor(const LuaExecutor &) = delete;
-    LuaExecutor &operator=(const LuaExecutor &) = delete;
-
-    static LuaExecutor &getInstance()
-    {
-        static LuaExecutor instance;
-        return instance;
-    }
-
-    bool dostring(const std::string &luaCode)
-    {
-        return checkLuaErr(luaL_dostring(m_LuaState, luaCode.c_str()));
-    }
-
-    lua_State *getLuaState() { return m_LuaState; }
-
-private:
-    LuaExecutor() : m_LuaState(luaL_newstate())
-    {
-        if (m_LuaState)
-        {
-            luaL_openlibs(m_LuaState);
-        }
-        else
-        {
-            std::cerr << "Failed to create Lua state!" << std::endl;
-        }
-    }
-
-    ~LuaExecutor()
-    {
-        if (m_LuaState)
-        {
-            lua_close(m_LuaState);
-        }
-    }
-
-    bool checkLuaErr(int result)
-    {
-        if (result != LUA_OK)
-        {
-            std::string errMsg = lua_tostring(m_LuaState, -1);
-            std::cout << "Error of Lua: " << errMsg << std::endl;
-            return false;
-        }
-        return true;
-    }
-
-    lua_State *m_LuaState;
+    int mode;
+    double x;
+    double y;
 };
 
 int main()
 {
-    auto &luaExecutor = LuaExecutor::getInstance();
-    luaExecutor.dostring("print('Hello World, lua!')");
+    sol::state lua;
+
+    // 向Lua暴露CustomData类型
+    lua.new_usertype<CustomData>("CustomData", "mode", &CustomData::mode, "x", &CustomData::x, "y", &CustomData::y);
+
+    // 使用Lua脚本热重载检查方法
+    auto checkWithLua = [&lua](const std::string& scriptPath, const CustomData& data)
+    {
+        try
+        {
+            if (!fs::exists(scriptPath))
+            {
+                std::cerr << "Lua script not found: " << scriptPath << std::endl;
+                return false;
+            }
+
+            lua.script_file(scriptPath);
+            sol::function inspectFunc = lua["inspect"];
+
+            // 检查函数是否存在
+            if (!inspectFunc.valid())
+            {
+                std::cerr << "Lua function 'inspect' not found" << std::endl;
+                return false;
+            }
+
+            sol::protected_function_result result = inspectFunc(data);
+            if (result.valid())
+            {
+                return result.get<bool>();
+            }
+            else
+            {
+                sol::error err = result;
+                std::cerr << "Lua function error: " << err.what() << std::endl;
+                return false;
+            }
+        }
+        catch (const sol::error& e)
+        {
+            std::cerr << "Lua error: " << e.what() << std::endl;
+            return false;
+        }
+    };
+
+    // 测试
+    CustomData testData{3, 103, 30};
+    if (checkWithLua(__CMAKE_CURRENT_SOURCE_DIR "/Inspection.lua", testData))
+    {
+        std::cout << "Inspection passed" << std::endl;
+    }
+    else
+    {
+        std::cout << "Inspection failed" << std::endl;
+    }
 
     return 0;
 }
