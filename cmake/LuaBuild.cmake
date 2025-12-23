@@ -1,4 +1,4 @@
-# luabuilder.cmake - CMake module for building Lua from source
+# luabuild.cmake - CMake module for building Lua from source
 
 # Function to build Lua library from source
 # Usage: build_lua(LUA_SOURCE_DIR [LIB_TYPE] [BUILD_EXECUTABLES])
