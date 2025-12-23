@@ -1,5 +1,57 @@
 # SampleBuild.cmake - CMake module for building sample executables with Lua support
 
+# Function to upgrade target properties
+# Usage: target_upgrade(TARGET)
+#   TARGET: Target to upgrade (required)
+function (target_upgrade TARGET)
+  # Link libraries
+  target_link_libraries(${TARGET} PRIVATE ${DEPEND_LIBS})
+
+  # Add SOL_ALL_SAFETIES_ON flag
+  target_compile_definitions(${TARGET} PRIVATE SOL_ALL_SAFETIES_ON=1)
+
+  # Set compile options based on platform
+  if (MSVC)
+    target_compile_options(
+      ${TARGET}
+      PRIVATE /utf-8
+              /W4
+              /EHsc
+              /Zc:__cplusplus
+              /Zc:preprocessor
+              /Gy
+              $<$<CONFIG:Debug>:/Od>
+              $<$<CONFIG:Release>:/O2
+              /GL>)
+
+    target_link_options(${TARGET} PRIVATE $<$<CONFIG:Release>:/LTCG /OPT:REF /OPT:ICF>)
+  else ()
+    target_compile_options(
+      ${TARGET}
+      PRIVATE -fPIC
+              -Wall
+              -Wextra
+              -Wconversion
+              -Wsign-compare
+              -Werror=uninitialized
+              -Werror=return-type
+              -Werror=unused-result
+              -Werror=suggest-override
+              -Wzero-as-null-pointer-constant
+              -Wmissing-declarations
+              -Wold-style-cast
+              -Wnon-virtual-dtor
+              $<$<CONFIG:Debug>:-g>
+              $<$<CONFIG:Release>:-g2
+              -flto>)
+
+    target_link_options(${TARGET} PRIVATE $<$<CONFIG:Release>:-flto>)
+  endif ()
+
+  # Enable interprocedural optimization for release builds
+  set_target_properties(${TARGET} PROPERTIES INTERPROCEDURAL_OPTIMIZATION_RELEASE ON)
+endfunction ()
+
 # Function to build sample executables from sample directory
 # Usage: build_samples(SAMPLE_DIR)
 #   SAMPLE_DIR: Path to samples directory (required)
@@ -48,50 +100,21 @@ function (build_samples SAMPLE_DIR)
 
     # Create executable
     add_executable(${SAMPLE_NAME} "${SAMPLE_SOURCE_DIR}/main.cpp")
+    target_upgrade(${SAMPLE_NAME})
 
-    # Link libraries
-    target_link_libraries(${SAMPLE_NAME} PRIVATE ${DEPEND_LIBS})
+    # Build and link library (optional)
+    if (EXISTS "${SAMPLE_SOURCE_DIR}/lib.cpp")
+      # Create library
+      add_library("lib${SAMPLE_NAME}" SHARED "${SAMPLE_SOURCE_DIR}/lib.cpp")
+      target_upgrade("lib${SAMPLE_NAME}")
 
-    # Set compile options based on platform
-    if (MSVC)
-      target_compile_options(
-        ${SAMPLE_NAME}
-        PRIVATE /utf-8
-                /W4
-                /EHsc
-                /Zc:__cplusplus
-                /Zc:preprocessor
-                /Gy
-                $<$<CONFIG:Debug>:/Od>
-                $<$<CONFIG:Release>:/O2
-                /GL>)
+      # Set library output name
+      set_target_properties("lib${SAMPLE_NAME}" PROPERTIES OUTPUT_NAME "lib${SAMPLE_NAME}")
+      message(STATUS "  Linked library: lib${SAMPLE_NAME}")
 
-      target_link_options(${SAMPLE_NAME} PRIVATE $<$<CONFIG:Release>:/LTCG /OPT:REF /OPT:ICF>)
-    else ()
-      target_compile_options(
-        ${SAMPLE_NAME}
-        PRIVATE -fPIC
-                -Wall
-                -Wextra
-                -Wconversion
-                -Wsign-compare
-                -Werror=uninitialized
-                -Werror=return-type
-                -Werror=unused-result
-                -Werror=suggest-override
-                -Wzero-as-null-pointer-constant
-                -Wmissing-declarations
-                -Wold-style-cast
-                -Wnon-virtual-dtor
-                $<$<CONFIG:Debug>:-g>
-                $<$<CONFIG:Release>:-g2
-                -flto>)
-
-      target_link_options(${SAMPLE_NAME} PRIVATE $<$<CONFIG:Release>:-flto>)
+      # Link library
+      target_link_libraries(${SAMPLE_NAME} PRIVATE "lib${SAMPLE_NAME}")
     endif ()
-
-    # Enable interprocedural optimization for release builds
-    set_target_properties(${SAMPLE_NAME} PROPERTIES INTERPROCEDURAL_OPTIMIZATION_RELEASE ON)
 
     # For multi-config generators (like Visual Studio), set output directory per config
     if (CMAKE_CONFIGURATION_TYPES)
@@ -135,6 +158,11 @@ function (build_samples SAMPLE_DIR)
 
     # Install the executable
     install(TARGETS ${SAMPLE_NAME} RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}/${SAMPLE_NAME}")
+
+    # Install the library (optional)
+    if (EXISTS "${SAMPLE_SOURCE_DIR}/lib.cpp")
+      install(TARGETS "lib${SAMPLE_NAME}" LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}/${SAMPLE_NAME}")
+    endif ()
 
     message(STATUS "  Sample '${SAMPLE_NAME}' configured")
   endforeach ()

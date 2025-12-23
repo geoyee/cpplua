@@ -17,7 +17,7 @@ public:
     {
     }
 
-    void handleFileAction(efsw::WatchID watchid,
+    void handleFileAction(efsw::WatchID /*watchid*/,
                           const std::string& dir,
                           const std::string& filename,
                           efsw::Action action,
