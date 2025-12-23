@@ -15,10 +15,9 @@ int main()
 {
     sol::state lua;
 
-    // 向Lua暴露CustomData类型
+    // Expose the CustomData type to Lua
     lua.new_usertype<CustomData>("CustomData", "mode", &CustomData::mode, "x", &CustomData::x, "y", &CustomData::y);
 
-    // 使用Lua脚本热重载检查方法
     auto checkWithLua = [&lua](const std::string& scriptPath, const CustomData& data)
     {
         try
@@ -32,7 +31,6 @@ int main()
             lua.script_file(scriptPath);
             sol::function inspectFunc = lua["inspect"];
 
-            // 检查函数是否存在
             if (!inspectFunc.valid())
             {
                 std::cerr << "Lua function 'inspect' not found" << std::endl;
@@ -58,7 +56,6 @@ int main()
         }
     };
 
-    // 测试
     CustomData testData{3, 103, 30};
     if (checkWithLua("Inspection.lua", testData))
     {
