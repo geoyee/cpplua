@@ -59,11 +59,11 @@ int main()
     CustomData testData{3, 103, 30};
     if (checkWithLua("Inspection.lua", testData))
     {
-        std::cout << "Inspection passed" << std::endl;
+        std::cout << "Inspection CustomData(3,103,30) passed" << std::endl;
     }
     else
     {
-        std::cout << "Inspection failed" << std::endl;
+        std::cout << "Inspection CustomData(3,103,30) failed" << std::endl;
     }
 
     return 0;

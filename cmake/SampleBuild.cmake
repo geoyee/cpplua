@@ -102,14 +102,18 @@ function (build_samples SAMPLE_DIR)
     add_executable(${SAMPLE_NAME} "${SAMPLE_SOURCE_DIR}/main.cpp")
     target_upgrade(${SAMPLE_NAME})
 
+    set(HAS_LIBRARY FALSE)
     # Build and link library (optional)
     if (EXISTS "${SAMPLE_SOURCE_DIR}/lib.cpp")
+      set(HAS_LIBRARY TRUE)
+
       # Create library
-      add_library("lib${SAMPLE_NAME}" SHARED "${SAMPLE_SOURCE_DIR}/lib.cpp")
+      add_library("lib${SAMPLE_NAME}" SHARED "${SAMPLE_SOURCE_DIR}/lib.cpp" "${SAMPLE_SOURCE_DIR}/lib.h")
       target_upgrade("lib${SAMPLE_NAME}")
 
-      # Set library output name
+      # Set library output name and include directory
       set_target_properties("lib${SAMPLE_NAME}" PROPERTIES OUTPUT_NAME "lib${SAMPLE_NAME}")
+      target_include_directories("lib${SAMPLE_NAME}" PUBLIC "${SAMPLE_SOURCE_DIR}")
       message(STATUS "  Linked library: lib${SAMPLE_NAME}")
 
       # Link library
@@ -160,7 +164,7 @@ function (build_samples SAMPLE_DIR)
     install(TARGETS ${SAMPLE_NAME} RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}/${SAMPLE_NAME}")
 
     # Install the library (optional)
-    if (EXISTS "${SAMPLE_SOURCE_DIR}/lib.cpp")
+    if (HAS_LIBRARY)
       install(TARGETS "lib${SAMPLE_NAME}" LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}/${SAMPLE_NAME}")
     endif ()
 
