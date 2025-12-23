@@ -1,3 +1,6 @@
 [submodule "3rdparty/sol2"]
 	path = 3rdparty/sol2
 	url = https://github.com/ThePhD/sol2.git
+[submodule "3rdparty/efsw"]
+	path = 3rdparty/efsw
+	url = https://github.com/SpartanJ/efsw.git

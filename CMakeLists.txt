@@ -1,15 +1,18 @@
-cmake_minimum_required(VERSION 3.26 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.27 FATAL_ERROR)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(LINK_WHAT_YOU_USE ON)
 
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 project(cpplua LANGUAGES C CXX)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 include(GNUInstallDirs)
+include(Functions)
 include(LuaBuild)
 include(SampleBuild)
 
@@ -41,7 +44,16 @@ else ()
 endif ()
 
 build_lua(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/lua)
+set_property(TARGET liblua PROPERTY FOLDER "ExtraTargets")
+update_cached_list(DEPEND_LIBS Lua::Lua)
+
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sol2)
+update_cached_list(DEPEND_LIBS sol2::sol2)
+
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/efsw)
+set_property(TARGET efsw PROPERTY FOLDER "ExtraTargets")
+set_property(TARGET efsw-static PROPERTY FOLDER "ExtraTargets")
+update_cached_list(PRI_DEPEND_LIBS efsw-static)
 
 if (${IS_MAIN_PROJECT})
   build_samples(${CMAKE_CURRENT_SOURCE_DIR}/sample)

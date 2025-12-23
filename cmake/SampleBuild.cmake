@@ -50,7 +50,7 @@ function (build_samples SAMPLE_DIR)
     add_executable(${SAMPLE_NAME} "${SAMPLE_SOURCE_DIR}/main.cpp")
 
     # Link libraries
-    target_link_libraries(${SAMPLE_NAME} PRIVATE Lua::Lua sol2::sol2)
+    target_link_libraries(${SAMPLE_NAME} PRIVATE ${DEPEND_LIBS})
 
     # Set compile options based on platform
     if (MSVC)
