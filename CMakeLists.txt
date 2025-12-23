@@ -53,7 +53,7 @@ update_cached_list(DEPEND_LIBS sol2::sol2)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/efsw)
 set_property(TARGET efsw PROPERTY FOLDER "ExtraTargets")
 set_property(TARGET efsw-static PROPERTY FOLDER "ExtraTargets")
-update_cached_list(PRI_DEPEND_LIBS efsw-static)
+update_cached_list(DEPEND_LIBS efsw-static)
 
 if (${IS_MAIN_PROJECT})
   build_samples(${CMAKE_CURRENT_SOURCE_DIR}/sample)
