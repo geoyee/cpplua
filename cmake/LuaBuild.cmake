@@ -91,7 +91,12 @@ function (build_lua LUA_SOURCE_DIR)
 
   # Create the Lua library target
   add_library(liblua ${LIB_TYPE} ${LIBRARY_SOURCES})
-  set_target_properties(liblua PROPERTIES OUTPUT_NAME "liblua")
+  if (WIN32)
+    set_target_properties(liblua PROPERTIES PREFIX "" OUTPUT_NAME "liblua")
+  else ()
+    target_compile_options(liblua PRIVATE -fPIC)
+    set_target_properties(liblua PROPERTIES PREFIX "lib" OUTPUT_NAME "lua")
+  endif ()
 
   # Set include directories
   target_include_directories(liblua PUBLIC ${LUA_INCLUDE_DIR})

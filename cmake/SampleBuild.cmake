@@ -112,7 +112,11 @@ function (build_samples SAMPLE_DIR)
       target_upgrade("lib${SAMPLE_NAME}")
 
       # Set library output name and include directory
-      set_target_properties("lib${SAMPLE_NAME}" PROPERTIES OUTPUT_NAME "lib${SAMPLE_NAME}")
+      if (WIN32)
+        set_target_properties("lib${SAMPLE_NAME}" PROPERTIES PREFIX "" OUTPUT_NAME "lib${SAMPLE_NAME}")
+      else ()
+        set_target_properties("lib${SAMPLE_NAME}" PROPERTIES PREFIX "lib" OUTPUT_NAME "${SAMPLE_NAME}")
+      endif ()
       target_include_directories("lib${SAMPLE_NAME}" PUBLIC "${SAMPLE_SOURCE_DIR}")
       message(STATUS "  Linked library: lib${SAMPLE_NAME}")
 
