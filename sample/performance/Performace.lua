@@ -1,3 +1,5 @@
+perfCpp = require("libperformance")
+
 function fibonacci(n)
     if n <= 1 then
         return n
