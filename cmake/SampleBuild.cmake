@@ -164,6 +164,22 @@ function (build_samples SAMPLE_DIR)
       install(FILES ${LUA_FILES} DESTINATION "${CMAKE_INSTALL_BINDIR}/${SAMPLE_NAME}")
     endif ()
 
+    # Copy library file on windows (optional)
+    if (HAS_LIBRARY AND WIN32)
+      # Get the full path to the library file
+      get_target_property(LIBRARY_TYPE "lib${SAMPLE_NAME}" TYPE)
+
+      if (LIBRARY_TYPE STREQUAL "SHARED_LIBRARY")
+        # Add post-build commands to copy dynamic libraries to the executable directory
+        add_custom_command(
+          TARGET ${SAMPLE_NAME}
+          POST_BUILD
+          COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:lib${SAMPLE_NAME}>"
+                  "$<TARGET_FILE_DIR:${SAMPLE_NAME}>/"
+          COMMENT "Copying DLL for sample ${SAMPLE_NAME}")
+      endif ()
+    endif ()
+
     # Install the executable
     install(TARGETS ${SAMPLE_NAME} RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}/${SAMPLE_NAME}")
 

@@ -1,4 +1,8 @@
-perfCpp = require("libperformance")
+--[[
+    If require doesn't use local variables to save, and uses global variables instead
+    Can be used in C++ with `sol::function fibonacciNLuaC = lua["perfCpp"]["fibonacciNC"]`
+]]
+local perfCpp = require("libperformance")
 
 function fibonacci(n)
     if n <= 1 then
@@ -13,4 +17,12 @@ function fibonacciN(m)
         res = res + fibonacci(i)
     end
     return res
+end
+
+function fibonacciCpp(n)
+    return perfCpp.fibonacciC(n)
+end
+
+function fibonacciNCpp(m)
+    return perfCpp.fibonacciNC(m)
 end

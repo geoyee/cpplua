@@ -25,7 +25,7 @@ int main()
     {
         lua.script_file("Performace.lua");
         sol::function fibonacciNLua = lua["fibonacciN"];
-        sol::function fibonacciNLuaC = lua["perfCpp"]["fibonacciNC"];
+        sol::function fibonacciNLuaC = lua["fibonacciNCpp"];
 
         auto [rCpp, tCpp] = measureExecutionTime(fibonacciN, count);
         auto [rLua, tLua] = measureExecutionTime(fibonacciNLua, count);
