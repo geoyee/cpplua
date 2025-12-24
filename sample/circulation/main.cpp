@@ -22,9 +22,14 @@ int main()
         if (result.valid())
         {
             p2 = result.get<Point>();
+            double dis = p1.distance(p2);
+            std::cout << "p1(0,0) => p2(" << p2.x << "," << p2.y << ") and distance is " << dis << std::endl;
         }
-
-        std::cout << "p1(0,0) => p2(" << p2.x << "," << p2.y << ")" << std::endl;
+        else
+        {
+            std::cerr << "Failed of call Lua function 'circulat'" << std::endl;
+            return -1;
+        }
     }
     catch (const sol::error& e)
     {
